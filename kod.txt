@@ -1,0 +1,271 @@
+import pygame
+from pygame.locals import *
+import time
+import pygame.mixer
+import math
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+import sys
+
+
+def window():
+    app = QApplication(sys.argv)
+    widget = QWidget()
+
+    button1 = QPushButton(widget)
+    button1.setText("Ping-Pong")
+    button1.move(64, 32)
+    button1.clicked.connect(button1_clicked)
+
+    button2 = QPushButton(widget)
+    button2.setText("Шутер")
+    button2.move(64, 64)
+    button2.clicked.connect(button2_clicked)
+
+    widget.setGeometry(50, 50, 320, 200)
+    widget.setWindowTitle("Мій проект")
+    widget.show()
+    sys.exit(app.exec_())
+
+
+def button1_clicked():
+    pygame.init()
+    window = pygame.display.set_mode((1200, 800))
+    window.fill((20, 60, 120))
+    clock = pygame.time.Clock()
+
+    class Sprite:
+        def __init__(self, x, y, widht, height, color):
+            self.rect = pygame.Rect(x, y, widht, height)
+            self.color = color
+
+        def fill(self):
+            pygame.draw.rect(window, self.color, self.rect)
+
+    class Label(Sprite):
+        def set_text(self, text, font_size, color_text):
+            self.text = pygame.font.SysFont('verdana', font_size).render(str(text), True, color_text)
+
+        def draw(self, ):
+            super().fill()
+            window.blit(self.text, (self.rect.x + 10, self.rect.y + 10))
+
+    player_point1 = 0
+    player_point2 = 0
+
+    line = Sprite(585, 0, 15, 1200, (255, 255, 255))
+    player1 = Sprite(50, 200, 20, 100, (5, 0, 255))
+    player2 = Sprite(1100, 200, 20, 100, (255, 255, 28))
+    ball = Sprite(520, 230, 35, 35, (177, 0, 0))
+    points_player1 = Label(100, 10, 100, 40, (16, 134, 0))
+    points_player1.set_text(player_point1, 50, (22, 22, 22))
+    points_player2 = Label(1050, 10, 100, 40, (16, 134, 0))
+    points_player2.set_text(player_point2, 50, (22, 22, 22))
+
+    dx = 8
+    dy = 8
+
+    p1_move_left = False
+    p1_move_right = False
+
+    p2_move_left = False
+    p2_move_right = False
+
+    game = True
+
+    while game:
+        window.fill((16, 134, 0))
+        line.fill()
+        ball.fill()
+        points_player1.fill()
+        points_player2.fill()
+        player1.fill()
+        player2.fill()
+
+        for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                game = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    game = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:
+                    p1_move_left = True
+                if event.key == pygame.K_s:
+                    p1_move_right = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_w:
+                    p1_move_left = False
+                if event.key == pygame.K_s:
+                    p1_move_right = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    p2_move_left = True
+                if event.key == pygame.K_DOWN:
+                    p2_move_right = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_UP:
+                    p2_move_left = False
+                if event.key == pygame.K_DOWN:
+                    p2_move_right = False
+
+        points_player1.set_text(player_point1, 50, (22, 22, 22))
+        points_player1.draw()
+        points_player2.set_text(player_point2, 50, (22, 22, 22))
+        points_player2.draw()
+
+        if p1_move_right:
+            player1.rect.y += 10
+        if p1_move_left:
+            player1.rect.y -= 10
+
+        if p2_move_right:
+            player2.rect.y += 10
+        if p2_move_left:
+            player2.rect.y -= 10
+
+        ball.rect.x += dx
+        ball.rect.y += dy
+
+        if ball.rect.colliderect(player2):
+            dx *= -1
+
+        if ball.rect.colliderect(player1):
+            dx *= -1
+
+        if ball.rect.x > 1170:
+            ball.rect.x = 550
+            ball.rect.y = 400
+            player_point1 += 1
+
+        if ball.rect.x < 0:
+            ball.rect.x = 450
+            ball.rect.y = 400
+            player_point2 += 1
+
+        if ball.rect.y > 770:
+            dy *= -1
+
+        if ball.rect.y < 0:
+            dy *= -1
+
+        if player_point1 == 5:
+            dx = 0
+            dy = 0
+            p1_move_left = False
+            p1_move_right = False
+            p2_move_left = False
+            p2_move_right = False
+            text = pygame.font.Font(None, 50).render("Гравець1 переміг!", True, (2, 5, 252))
+            window.blit(text, (200, 50))
+
+        if player_point2 == 5:
+            dx = 0
+            dy = 0
+            p1_move_left = False
+            p1_move_right = False
+            p2_move_left = False
+            p2_move_right = False
+            text = pygame.font.Font(None, 50).render("Гравець2 переміг!", True, (175, 255, 1))
+            window.blit(text, (700, 50))
+
+        clock.tick(60)
+        pygame.display.update()
+
+
+def button2_clicked():
+    pygame.init()
+    x = 800
+    y = 600
+    white = (23, 11, 143)
+    black = (43, 0, 1)
+    red = (255, 88, 0)
+
+    window = pygame.display.set_mode((x, y))
+    pygame.display.set_caption('Шутер')
+    clock = pygame.time.Clock()
+
+    fon = pygame.transform.scale(pygame.image.load("fon.jpg"), (800, 600))
+    player_image = pygame.transform.scale(pygame.image.load("player.jpg"), (50, 50))
+    enemy_image = pygame.transform.scale(pygame.image.load("enemy.jpg"), (50, 50))
+
+    pygame.mixer.init()
+    shoot = pygame.mixer.Sound("shoot_music.mp3")
+    fon_music = pygame.mixer.Sound("fon_music.mp3")
+    fon_music.play()
+
+    game_over = False
+
+    enemies = []
+
+    player = pygame.rect.Rect(375, 500, 50, 50)
+    start_time = time.time()
+
+    for j in range(1, 4):
+        for i in range(7):
+            enemies.append(pygame.rect.Rect(i * 100 + 80, 75 * j, 50, 50))
+
+    bullets = []
+
+    while not game_over:
+        window.blit(fon, (0, 0))
+        current_time = time.time()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_over = True
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and len(bullets) < 6:
+                    bullets.append(pygame.rect.Rect(player.x + player.width // 2, player.y, 5, 10))
+                    shoot.play()
+
+        pressed = pygame.key.get_pressed()
+
+        for enemy in enemies:
+            window.blit(enemy_image, (enemy.x, enemy.y))
+
+        for bullet in bullets:
+            pygame.draw.rect(window, (255, 0, 0), bullet)
+
+        for enemy in enemies:
+            if math.floor(start_time - current_time) % 5 == 0:
+                enemy.y += 1
+            if enemy.colliderect(player):
+                print("Ти програв(")
+
+                game_over = True
+
+        for bullet in bullets:
+            if bullet.y < 0:
+                bullets.remove(bullet)
+            else:
+                bullet.y -= 3
+
+            for enemy in enemies:
+                if bullet.colliderect(enemy):
+                    enemies.remove(enemy)
+                    bullets.remove(bullet)
+
+        if pressed[pygame.K_a] and player.x > 0:
+            player.x -= 5
+        if pressed[pygame.K_d] and player.x < 750:
+            player.x += 5
+
+        window.blit(player_image, (player.x, player.y))
+
+        if not enemies:
+            print("Ти виграв!")
+            game_over = True
+        pygame.display.update()
+
+        clock.tick(60)
+
+if __name__ == '__main__':
+    window()
+
